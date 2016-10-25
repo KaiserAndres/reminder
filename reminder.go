@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Reminder {
+type Reminder struct {
 	Id int
 	Data string
 	Creation Time
