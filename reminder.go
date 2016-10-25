@@ -13,7 +13,7 @@ type Reminder {
 	Creation Time
 }
 
-func NewReminder(data string){
+func NewReminder(data string) Reminder {
 	return Reminder{01, data, time.Now()}
 }
 
