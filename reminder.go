@@ -2,9 +2,20 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/clagraff/argparse"
 	"os"
 )
+
+type Reminder {
+	Id int
+	Data string
+	Creation Time
+}
+
+func NewReminder(data string){
+	return Reminder{01, data, time.Now()}
+}
 
 func main() {
 	/*
