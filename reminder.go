@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
+<<<<<<< HEAD
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -12,6 +13,28 @@ type note struct {
 	text string
 	creation time.Time
 }
+=======
+	"github.com/clagraff/argparse"
+	"os"
+)
+
+type Reminder struct {
+	Id int
+	Data string
+	Creation Time
+}
+
+func NewReminder(data string) Reminder {
+	return Reminder{01, data, time.Now()}
+}
+
+func main() {
+	/*
+	 * Command format:
+	 * $reminder [-a <REMIND_TEXT>|-l|-r <REMIND_ID>]
+	 *
+	 */
+>>>>>>> de00dc3d7b535c20cab6027da0196ce546c87f28
 
 /*
 * TODO:
