@@ -1,26 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"time"
-<<<<<<< HEAD
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 type note struct {
-	id int
-	text string
+	id       int
+	text     string
 	creation time.Time
 }
-=======
-	"github.com/clagraff/argparse"
-	"os"
-)
 
 type Reminder struct {
-	Id int
-	Data string
+	Id       int
+	Data     string
 	Creation Time
 }
 
@@ -29,9 +24,9 @@ type Reminder struct {
 *  √ Load reminders from DB
 *  * Allow reminders to have specified allert dates
 *  * Display latest reminders
-*/
+ */
 
-func loadAllReminders() ([]note ,error) {
+func loadAllReminders() ([]note, error) {
 	var reminders []note
 	db, err := sql.Open("sqlite3", "reminders.db")
 	if err != nil {
@@ -44,7 +39,7 @@ func loadAllReminders() ([]note ,error) {
 		return nil, err
 	}
 	defer res.Close()
-	for res.Next(){
+	for res.Next() {
 		var id int
 		var text string
 		var dateUnix int64
@@ -72,7 +67,7 @@ func main() {
 	testRem := note{01, "This is my test note", time.Now()}
 	saveReminder(testRem)
 	myReminders, err := loadAllReminders()
-	if err != nil{
+	if err != nil {
 		return
 	}
 	fmt.Println(myReminders)
