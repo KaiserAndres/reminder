@@ -39,6 +39,16 @@ func AssignDeadline(id int ,days int, weeks int, months int) error {
 	return nil
 }
 
+func CompleteTast(id int) error {
+	db, err := sql.Open("sqlite3", "reminders.db")
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	db.Execute("UPDATE dealines SET completed=true WHERE id=?", id)
+	return nil
+}
+
 func createReminderList(rows *sql.Rows) ([]note, error) {
 	/*
 	* Creates a note list from the database
