@@ -21,7 +21,7 @@ type note struct {
 *  * Display latest reminders
  */
 
-func createReminderList(rows *sql.Rows) []note {
+func createReminderList(rows *sql.Rows) ([]note, error) {
 	/*
 	* Creates a note list from the database
 	* The query must have already been performed
@@ -33,11 +33,38 @@ func createReminderList(rows *sql.Rows) []note {
 		var text string
 		var dateUnix int64
 
-		rows.Scan(&id, &text, &dateUnix)
+		err := rows.Scan(&id, &text, &dateUnix)
+		if err != nil {
+			fmt.Print(err.Error())
+			return nil, err
+		}
 		reminders = append(reminders,
 			note{id, text, time.Unix(dateUnix, 0)})
 	}
-	return reminders
+	return reminders, nil
+}
+
+func dash (length int) {
+	for i:=0; i<length; i++ {
+		fmt.Printf("-")
+	}
+	fmt.Printf("\n")
+}
+
+func displayReminders(reminders []note) {
+	for _, reminder := range reminders {
+		var nDash int
+		if len(reminder.text) > len(reminder.creation.String()){
+			nDash = len(reminder.text)
+		} else {
+			nDash = len(reminder.creation.String())
+		}
+		dash(nDash+2)
+		fmt.Printf("|%s|\n", reminder.text)
+		fmt.Printf("|%s|\n",
+			reminder.creation.String())
+		dash(nDash+2)
+	}
 }
 
 func loadToPeriod(/*limit time.Time*/) ([]note, error) {
@@ -49,8 +76,15 @@ func loadToPeriod(/*limit time.Time*/) ([]note, error) {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	res, err := db.Query("SELECT * FROM reminders WHERE creation > ?", time.Now().Unix(), limit.Unix())
-	reminders := createReminderList(res)
+	minDate := time.Now().Unix()-int64(time.Hour.Seconds())*12*7
+	res, err := db.Query(
+		"SELECT * FROM reminders WHERE creation > ?",
+		minDate)
+	reminders, err := createReminderList(res)
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
 	db.Close()
 	return reminders, nil
 }
@@ -66,7 +100,11 @@ func loadAllReminders() ([]note, error) {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	reminders := createReminderList(res)
+	reminders, err := createReminderList(res)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
 	db.Close()
 	return reminders, nil
 }
@@ -88,5 +126,5 @@ func main() {
 	if err != nil {
 		return
 	}
-	fmt.Println(myReminders)
+	displayReminders(myReminders)
 }
