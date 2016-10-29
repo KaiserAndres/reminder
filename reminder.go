@@ -64,10 +64,11 @@ func createReminderList(rows *sql.Rows) ([]note, error) {
 	var reminders []note
 	defer rows.Close()
 	for rows.Next() {
-		var id int
-		var text string
-		var dateUnix int64
-
+		var (
+			id       int
+			text     string
+			dateUnix int64
+		)
 		err := rows.Scan(&id, &text, &dateUnix)
 		if err != nil {
 			fmt.Print(err.Error())
