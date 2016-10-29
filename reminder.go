@@ -24,27 +24,12 @@ type Reminder struct {
 	Creation Time
 }
 
-func NewReminder(data string) Reminder {
-	return Reminder{01, data, time.Now()}
-}
-
-func main() {
-	/*
-	 * Command format:
-	 * $reminder [-a <REMIND_TEXT>|-l|-r <REMIND_ID>]
-	 *
-	 */
->>>>>>> de00dc3d7b535c20cab6027da0196ce546c87f28
-
 /*
 * TODO:
 *  √ Load reminders from DB
 *  * Allow reminders to have specified allert dates
 *  * Display latest reminders
 */
-
-
-
 
 func loadAllReminders() ([]note ,error) {
 	var reminders []note
@@ -60,12 +45,13 @@ func loadAllReminders() ([]note ,error) {
 	}
 	defer res.Close()
 	for res.Next(){
-	var id int
-	var text string
-	var dateUnix int64
+		var id int
+		var text string
+		var dateUnix int64
 
-	err = res.Scan(&id, &text, &dateUnix)
-	reminders = append(reminders, note{id, text, time.Unix(dateUnix, 0)})
+		err = res.Scan(&id, &text, &dateUnix)
+		reminders = append(reminders,
+			note{id, text, time.Unix(dateUnix, 0)})
 	}
 	db.Close()
 
