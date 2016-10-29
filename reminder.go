@@ -13,7 +13,6 @@ type note struct {
 	creation time.Time
 }
 
-
 /*
 * TODO:
 *  √ Load reminders from DB
@@ -21,21 +20,25 @@ type note struct {
 *  √ Display latest reminders
  */
 
-const (
-	UnixDay int64 = int64(time.Hour.Seconds())*24
-	UnixWeek int64 = UnixDay*7
-	UnixMotn int64 = UnixDay*30
+var (
+	UnixDay   int64 = int64(time.Hour.Seconds()) * 24
+	UnixWeek  int64 = UnixDay * 7
+	UnixMonth int64 = UnixDay * 30
 )
 
-func AssignDeadline(id int ,days int, weeks int, months int) error {
+func AssignDeadline(id int, days int64, weeks int64, months int64) error {
 	db, err := sql.Open("sqlite3", "reminders.db")
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	unixDate := time.Now().Unix()
-	unixDate += days*UnixDay + weeks * UnixWeek + months * UnixMonth
-	err := db.Execute("INSERT INTO deadlines (?,?,?)", id, unixDate, false)
+	unixDate += days*UnixDay + weeks*UnixWeek + months*UnixMonth
+	_, err = db.Exec("INSERT INTO deadlines (?,?,?)", id, unixDate, false)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 	return nil
 }
 
@@ -45,7 +48,11 @@ func CompleteTast(id int) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	db.Execute("UPDATE dealines SET completed=true WHERE id=?", id)
+	_, err = db.Exec("UPDATE dealines SET completed=true WHERE id=?", id)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 	return nil
 }
 
@@ -53,7 +60,7 @@ func createReminderList(rows *sql.Rows) ([]note, error) {
 	/*
 	* Creates a note list from the database
 	* The query must have already been performed
-	*/
+	 */
 	var reminders []note
 	defer rows.Close()
 	for rows.Next() {
@@ -73,7 +80,7 @@ func createReminderList(rows *sql.Rows) ([]note, error) {
 }
 
 func dash(length int) {
-	for i:=0; i<length; i++ {
+	for i := 0; i < length; i++ {
 		fmt.Printf("-")
 	}
 	fmt.Printf("\n")
@@ -82,29 +89,29 @@ func dash(length int) {
 func displayReminders(reminders []note) {
 	for _, reminder := range reminders {
 		var nDash int
-		if len(reminder.text) > len(reminder.creation.String()){
+		if len(reminder.text) > len(reminder.creation.String()) {
 			nDash = len(reminder.text)
 		} else {
 			nDash = len(reminder.creation.String())
 		}
-		dash(nDash+2)
+		dash(nDash + 2)
 		fmt.Printf("|%s|\n", reminder.text)
 		fmt.Printf("|%s|\n",
 			reminder.creation.String())
-		dash(nDash+2)
+		dash(nDash + 2)
 	}
 }
 
-func loadToPeriod(/*limit time.Time*/) ([]note, error) {
+func loadToPeriod( /*limit time.Time*/ ) ([]note, error) {
 	/*
 	* TODO add reminder deadlines
-	*/
+	 */
 	db, err := sql.Open("sqlite3", "reminders.db")
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	minDate := time.Now().Unix()- UnixWeek
+	minDate := time.Now().Unix() - UnixWeek
 	res, err := db.Query(
 		"SELECT * FROM reminders WHERE creation > ?",
 		minDate)
