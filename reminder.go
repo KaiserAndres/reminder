@@ -2,36 +2,69 @@ package main
 
 import (
 	"fmt"
-	"github.com/clagraff/argparse"
-	"os"
+	"time"
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func main() {
-	/*
-	 * Command format:
-	 * $reminder [-a <REMIND_TEXT>|-l|-r <REMIND_ID>]
-	 *
-	 */
+type note struct {
+	id int
+	text string
+	creation time.Time
+}
 
-	parser := argparse.NewParser("A general purpose CLI TODO list.").Version("0.1a")
-	parser.AddHelp().AddVersion()
+/*
+* TODO:
+*  √ Load reminders from DB
+*  * Allow reminders to have specified allert dates
+*  * Display latest reminders
+*/
 
-	add := argparse.NewOption("a", "add", "-a <REMINDER_TEXT>").Default("")
-	list := argparse.NewOption("l", "list", "-l will list all current reminders")
-	rem := argparse.NewOption("r", "remove", "-r <REMINDER_ID>").Default("-1")
 
-	parser.AddOptions(add, list, rem)
 
-	ns, s, err := parser.Parse(os.Args[1:]...)
 
-	switch err.(type) {
-	case argparse.ShowHelpErr:
-		return
-	case error:
-		fmt.Println(err, '\n')
-		parser.ShowHelp()
+func loadAllReminders() ([]note ,error) {
+	var reminders []note
+	db, err := sql.Open("sqlite3", "reminders.db")
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	res, err := db.Query("SELECT * FROM reminders")
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	defer res.Close()
+	for res.Next(){
+	var id int
+	var text string
+	var dateUnix int64
+
+	err = res.Scan(&id, &text, &dateUnix)
+	reminders = append(reminders, note{id, text, time.Unix(dateUnix, 0)})
+	}
+	db.Close()
+
+	return reminders, nil
+}
+
+func saveReminder(reminder note) {
+	db, err := sql.Open("sqlite3", "reminders.db")
+	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println(ns.String)
-	fmt.Println(s)
+	db.Exec("INSERT INTO reminders VALUES (?, ?, ?)",
+		nil, reminder.text, reminder.creation.Unix())
+}
+
+func main() {
+	testRem := note{01, "This is my test note", time.Now()}
+	saveReminder(testRem)
+	myReminders, err := loadAllReminders()
+	if err != nil{
+		return
+	}
+	fmt.Println(myReminders)
 }
