@@ -18,8 +18,26 @@ type note struct {
 * TODO:
 *  √ Load reminders from DB
 *  * Allow reminders to have specified alert dates
-*  * Display latest reminders
+*  √ Display latest reminders
  */
+
+const (
+	UnixDay int64 = int64(time.Hour.Seconds())*24
+	UnixWeek int64 = UnixDay*7
+	UnixMotn int64 = UnixDay*30
+)
+
+func AssignDeadline(id int ,days int, weeks int, months int) error {
+	db, err := sql.Open("sqlite3", "reminders.db")
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	unixDate := time.Now().Unix()
+	unixDate += days*UnixDay + weeks * UnixWeek + months * UnixMonth
+	err := db.Execute("INSERT INTO deadlines (?,?,?)", id, unixDate, false)
+	return nil
+}
 
 func createReminderList(rows *sql.Rows) ([]note, error) {
 	/*
@@ -44,7 +62,7 @@ func createReminderList(rows *sql.Rows) ([]note, error) {
 	return reminders, nil
 }
 
-func dash (length int) {
+func dash(length int) {
 	for i:=0; i<length; i++ {
 		fmt.Printf("-")
 	}
@@ -76,7 +94,7 @@ func loadToPeriod(/*limit time.Time*/) ([]note, error) {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	minDate := time.Now().Unix()-int64(time.Hour.Seconds())*12*7
+	minDate := time.Now().Unix()- UnixWeek
 	res, err := db.Query(
 		"SELECT * FROM reminders WHERE creation > ?",
 		minDate)
