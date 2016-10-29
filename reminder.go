@@ -13,21 +13,49 @@ type note struct {
 	creation time.Time
 }
 
-type Reminder struct {
-	Id       int
-	Data     string
-	Creation Time
-}
 
 /*
 * TODO:
 *  √ Load reminders from DB
-*  * Allow reminders to have specified allert dates
+*  * Allow reminders to have specified alert dates
 *  * Display latest reminders
  */
 
-func loadAllReminders() ([]note, error) {
+func createReminderList(rows *sql.Rows) []note {
+	/*
+	* Creates a note list from the database
+	* The query must have already been performed
+	*/
 	var reminders []note
+	defer rows.Close()
+	for rows.Next() {
+		var id int
+		var text string
+		var dateUnix int64
+
+		rows.Scan(&id, &text, &dateUnix)
+		reminders = append(reminders,
+			note{id, text, time.Unix(dateUnix, 0)})
+	}
+	return reminders
+}
+
+func loadToPeriod(/*limit time.Time*/) ([]note, error) {
+	/*
+	* TODO add reminder deadlines
+	*/
+	db, err := sql.Open("sqlite3", "reminders.db")
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	res, err := db.Query("SELECT * FROM reminders WHERE creation > ?", time.Now().Unix(), limit.Unix())
+	reminders := createReminderList(res)
+	db.Close()
+	return reminders, nil
+}
+
+func loadAllReminders() ([]note, error) {
 	db, err := sql.Open("sqlite3", "reminders.db")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -38,18 +66,8 @@ func loadAllReminders() ([]note, error) {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	defer res.Close()
-	for res.Next() {
-		var id int
-		var text string
-		var dateUnix int64
-
-		err = res.Scan(&id, &text, &dateUnix)
-		reminders = append(reminders,
-			note{id, text, time.Unix(dateUnix, 0)})
-	}
+	reminders := createReminderList(res)
 	db.Close()
-
 	return reminders, nil
 }
 
